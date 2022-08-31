@@ -13,13 +13,14 @@ def new_cookie_order():
     return render_template("new_order.html")
 
 @app.route('/cookies/edit/<int:id>')
-def Edit_cookie_order(id):
+def edit_cookie_order(id):
     print("This is the order", id)
     data = {
         "id": id
     }
     order_info = Order.get_order(data)
-    return render_template("edit_order.html", order = order_info)
+    print("Order to be edited", order_info[0])
+    return render_template("edit_order.html", order = order_info[0])
 
 @app.route('/cookies/new', methods=["POST"])
 def create_order():
@@ -30,7 +31,22 @@ def create_order():
     }
     print(data)
     # Post validation (will cause redirect if False)
-    # if not Order.validate_user(data):
-    #     return redirect('/')
+    if not Order.validate_order(data):
+        return redirect('/cookies/new')
     Order.save(data)
+    return redirect('/')
+
+@app.route('/cookies/edit', methods=["POST"])
+def edit_order():
+    data = {
+        "id": request.form["id"],
+        "customer_name": request.form["name"],
+        "type" : request.form["type"],
+        "box_count": request.form["box_count"]
+    }
+    order_id = request.form["id"]
+    # Post validation (will cause redirect if False)
+    if not Order.validate_edit(data):
+        return redirect(f'/cookies/edit/{order_id}')
+    Order.edit(data)
     return redirect('/')

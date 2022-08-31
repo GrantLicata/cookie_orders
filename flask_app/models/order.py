@@ -6,7 +6,7 @@ class Order:
     def __init__(self ,data):
         self.id = data['id']
         self.type = data['type']
-        self.count = data['box_count']
+        self.box_count = data['box_count']
         self.customer_name = data['customer_name']
         self.created_at = data['created_at']
         self.updated_at = data['updated_at']
@@ -23,7 +23,7 @@ class Order:
     @classmethod
     def get_order(cls , data):
         query = "SELECT * FROM orders WHERE id = %(id)s;"
-        results = connectToMySQL('cookie_orders').query_db(query)
+        results = connectToMySQL('cookie_orders').query_db(query , data)
         data = []
         for item in results:
             data.append( cls(item) )
@@ -35,24 +35,36 @@ class Order:
         return connectToMySQL('cookie_orders').query_db( query, data )
 
     @classmethod
-    def update(cls, data):
-        query = "UPDATE orders SET type = %(first_name)s, box_count = %(last_name)s, updated_at = NOW() WHERE id = %(id)s;"
+    def edit(cls, data):
+        query = "UPDATE orders SET customer_name = %(customer_name)s, type = %(type)s, box_count = %(box_count)s, updated_at = NOW() WHERE id = %(id)s;"
         print(query)
         return connectToMySQL('cookie_orders').query_db( query, data )
 
     @staticmethod
+    def validate_edit(data):
+        is_valid = True # we assume this is true
+        if len(data['customer_name']) < 1:
+            flash("Customer name is required.")
+            is_valid = False
+        if len(data['type']) < 1:
+            flash("Cookie type is required.")
+            is_valid = False
+        if int(data['box_count']) < 0:
+            flash("Number of boxes is required.")
+            is_valid = False
+        return is_valid
+
+
+    @staticmethod
     def validate_order(data):
         is_valid = True # we assume this is true
-        if len(data['first_name']) < 1:
-            flash("First name is required.")
+        if len(data['customer_name']) < 2:
+            flash("Customer name is required.")
             is_valid = False
-        if len(data['last_name']) < 1:
-            flash("Last name is required.")
+        if len(data['type']) < 2:
+            flash("Cookie type is required.")
             is_valid = False
-        if len(data['email']) < 1:
-            flash("Email is required")
-            is_valid = False
-        elif len(data['email']) > 0: 
-            flash("Invalid email address!")
+        if int(data['box_count']) < 0:
+            flash("Number of boxes is required.")
             is_valid = False
         return is_valid
